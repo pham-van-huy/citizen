@@ -1,6 +1,6 @@
 # GophersLand's kingdom main library
 
-GophersLand main library built by citizens themselves regularly updated with new knowledge, GoLang cheatsheets, theory and all the necessary material in order to get proficient in Go.
+Go knowledge library built by citizens themselves regularly updated with new knowledge, GoLang cheatsheets, theory and all the necessary material in order to get proficient in Go.
 
 > Improve your Go skills, collaborate, contribute!
 

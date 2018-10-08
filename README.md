@@ -4,6 +4,8 @@ Go knowledge library built by citizens themselves regularly updated with new kno
 
 > Improve your Go skills, collaborate, contribute!
 
+[https://gophersland.com](https://gophersland.com)
+
 ## Installing Go
 
 All the instructions available in the course lecture: [Installing Go](https://gophersland.com/courses/386746/lectures/6432539).

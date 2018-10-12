@@ -24,6 +24,8 @@ An overview of all the main library [(web course)](https://gophersland.com/p/cit
 
 ### Content
 
+[Web view: https://gophersland.com/courses/enrolled/386746.](https://gophersland.com/courses/enrolled/386746)
+
 Name | Lecture | Task | Status 
 ------------ | ------------- | ------------- | --------------
 Welcome to GophersLand Main Library | About the Library | - | &#10003;

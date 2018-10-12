@@ -35,7 +35,8 @@ Fundamentals | Is Go an Object Oriented language? | - | &#10003;
 Implementing HTTPS server secured by Let's Encrypt | Implementing HTTP server | https://github.com/gophersland/citizen/issues/1 | &#10003;
 Implementing HTTPS server secured by Let's Encrypt | Writing integration tests | https://github.com/gophersland/citizen/issues/2 |
 Implementing HTTPS server secured by Let's Encrypt | Securing the server with SSL | https://github.com/gophersland/citizen/issues/3 |
-Goroutines | Theory and practical Example |? | 
+Goroutines | Theory and practical example | Who would like to teach this? | 
+... | ... | ... | 
 
 ## Welcome
 

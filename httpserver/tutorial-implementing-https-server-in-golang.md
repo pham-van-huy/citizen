@@ -189,9 +189,102 @@ http.Handle("/authorize", decorateHttpRes(authorizeHandlerImpl(), addJsonHeader(
 
 The decorator (middleware logic) is inspired by Mat Ryer [implementation](https://medium.com/@matryer/the-http-handler-wrapper-technique-in-golang-updated-bc7fbcffa702). Recommended read.
 
+## Securing the HTTP server with an SSL certificate
+
+Change the current `server.ListenAndServe` to `server.ListenAndServeTLS`:
+
+```go
+err := server.ListenAndServeTLS(
+    cfg.certificatePemFilePath,
+    cfg.certificatePemPrivKeyFilePath,
+)
+```
+
+And create a new config file to encapsulate the server properties such as port and certificate paths:
+
+```go
+type Config struct {
+	port                          int
+	certificatePemFilePath        string
+	certificatePemPrivKeyFilePath string
+}
+
+func NewConfig(port int, certificatePemFilePath string, certificatePemPrivKeyFilePath string) Config {
+	return Config{
+		port,
+		certificatePemFilePath,
+		certificatePemPrivKeyFilePath,
+	}
+}
+```
+
+**TIP: Always introduce a constructor factory function to initialize a Struct in a valid state.**
+
+But wait a minute, what are those certificate paths? Well, an SSL certificate that secures your traffic is basically an cryptographic combination of a certificate (Public key) in combination, as usual, with a Private key.
+
+Let's generate one right one using OpenSSL that should be pre-installed on your linux distribution so I don't count it as an 3th party tool.
+
+Generating `localhost.crt` certificate file and its private key `localhost.key`: 
+
+```
+openssl req -x509 -out localhost.crt -keyout localhost.key \
+  -newkey rsa:2048 -nodes -sha256 \
+  -subj '/CN=localhost' -extensions EXT -config <( \
+   printf "[dn]\nCN=localhost\n[req]\ndistinguished_name = dn\n[EXT]\nsubjectAltName=DNS:localhost\nkeyUsage=digitalSignature\nextendedKeyUsage=serverAuth")
+```
+
+[source](https://letsencrypt.org/docs/certificates-for-localhost/)
+
+![openssl result](https://rablater.sirv.com/Images/GophersLand/Screenshot%20from%202018-10-16%2021-20-57.png)
+
+Fill the config, compile, launch the server.
+
+*PS: Storing the keys inside a repository is obviously a horrible idea, only suitable for localhost demonstrations.*
+
+```go
+func main() {
+	cfg := httpserver.NewConfig(
+		9093,
+		"/home/enchanter/go/src/github.com/gophersland/citizen/httpserver/localhost.crt",
+		"/home/enchanter/go/src/github.com/gophersland/citizen/httpserver/localhost.key",
+	)
+	reqHandlersDependencies := httpserver.NewReqHandlersDependencies("pong")
+
+	err := httpserver.RunServerImpl(context.Background(), cfg, httpserver.ServeReqsImpl, reqHandlersDependencies)
+	if err != nil {
+		fmt.Println(err.Error())
+		os.Exit(1)
+	}
+
+	os.Exit(0)
+}
+```
+
+Perform a request using cURL: 
+
+```
+curl -k -d '{"Value":"pinging gophersland server"}' -H "Content-Type: application/json" -X POST https://localhost:9093/ping
+
+> {"message":"request: pinging gophersland server; response: pong","error":""}
+```
+
+Wuhu :star:!
+
+**Note:**
+
+We added a "**-k, --insecure (SSL)**" flag. This option explicitly allows cURL to perform "insecure" SSL connections and transfers as our certificate is self-signed and not trusted by any authority. This is fine for demonstration purposes. 
+
+For production use, we would generate the certificate using some official public authority such as previously mentioned, Let's Encrypt and perform their DNS challenge, or buy it $$$. The DNS challenge consist from creating a DNS TXT record with specific value to validate domain ownership. In such a case, the cURL would work without any problems with the same exact code we have right now. 
+
+The only difference would be the certificates themselves. Have a look at the official [CertBot](https://certbot.eff.org/) docs for more info on generating a self signed publicly recognised certificate supporting EVEN wildcard rules such as `*.gophersland.com`.
+
+## Writing integration test to avoid boring, slow manual testing
+
+Tests are amazing and save time. Anyone who says otherwise is probably an uneducated Product Owner :)
+
+WIP. To be continued...
+
 ## Extra things to notice
 
 - no need for creating a Server `Struct`. **Functions first, approach!**
 - dependencies are clearly encapsulated and passed around without affecting the server functionality, functions signature. Even if more routes would be added and custom dependencies for each route would be needed, only one place changes, The isolated deps Struct.
-
-## WIP. To be continued...

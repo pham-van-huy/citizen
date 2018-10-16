@@ -11,7 +11,11 @@ import (
 )
 
 func main() {
-	cfg := httpserver.NewConfig(9093, "", "")
+	cfg := httpserver.NewConfig(
+		9093,
+		fmt.Sprintf("%s/src/github.com/gophersland/citizen/httpserver/localhost.crt", os.Getenv("GOPATH")),
+		fmt.Sprintf("%s/src/github.com/gophersland/citizen/httpserver/localhost.key", os.Getenv("GOPATH")),
+	)
 	reqHandlersDependencies := httpserver.NewReqHandlersDependencies("pong")
 
 	err := httpserver.RunServerImpl(context.Background(), cfg, httpserver.ServeReqsImpl, reqHandlersDependencies)

@@ -46,7 +46,10 @@ var ServeReqsImpl = func(ctx context.Context, cfg Config, deps ReqHandlersDepend
 		server.Shutdown(ctx)
 	}()
 
-	err := server.ListenAndServe()
+	err := server.ListenAndServeTLS(
+		cfg.certificatePemFilePath,
+		cfg.certificatePemPrivKeyFilePath,
+	)
 
 	// Shutting down the server is not something bad ffs Go...
 	if err == http.ErrServerClosed {

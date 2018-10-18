@@ -282,9 +282,158 @@ The only difference would be the certificates themselves. Have a look at the off
 
 Tests are amazing and save time. Anyone who says otherwise is probably an uneducated Product Owner :)
 
-WIP. To be continued...
+These days I am a big fan of unit test but especially in combination with integration tests as I am working on highly distributed/decentralised projects, Go is very suitable for. Let's write one integration test that will test our server, our decorator middleware, everything.
+
+```go
+func TestHttpServerLifeCycle(t *testing.T) {
+}
+}
+```
+
+First we will launch the HTTP server in our test, and in a little hack-y way, we will execute a horrible `time.Sleep` to make sure our HTTP server is running before we perform any API call. If anyone has a better idea how to do it, feel free to [submit a PR](https://github.com/gophersland/citizen/issues)!
+
+```go
+ctx, closeServer := context.WithCancel(context.Background())
+	cfg := NewConfig(
+		9093,
+		fmt.Sprintf("%s/src/github.com/gophersland/citizen/httpserver/localhost.crt", os.Getenv("GOPATH")),
+		fmt.Sprintf("%s/src/github.com/gophersland/citizen/httpserver/localhost.key", os.Getenv("GOPATH")),
+	)
+
+	go func() {
+		reqHandlersDependencies := NewReqHandlersDependencies("test pong")
+		err := RunServerImpl(ctx, cfg, ServeReqsImpl, reqHandlersDependencies)
+		if err != nil {
+			t.Fatal(err)
+		}
+	}()
+
+	time.Sleep(time.Second*2)
+```
+
+Now we will create an HTTP request to our previously registered `/ping` route and once again, only using  the Go standard library, execute the request. Gosh, Go is amazing.
+
+```go
+func createPingReq() *bytes.Reader {
+	reqBodyJson, _ := json.Marshal(pingReq{"test ping value"})
+	return bytes.NewReader(reqBodyJson)
+}
+
+func createURL(cfg Config, route string) string {
+	return fmt.Sprintf("https://%s:%d%s", "localhost", cfg.port, route)
+}
+
+func newHttpClient() *http.Client {
+	tr := &http.Transport{
+		TLSClientConfig: &tls.Config{InsecureSkipVerify : true},
+	}
+	return &http.Client{Transport: tr}
+}
+
+req, err := http.NewRequest("POST", createURL(cfg, pingRoute), createPingReq())
+	if err != nil {
+		closeServer()
+		t.Fatal(err)
+	}
+
+	resp, err := newHttpClient().Do(req)
+	if err != nil {
+		closeServer()
+		t.Fatal(err)
+	}
+	defer resp.Body.Close()
+```
+
+We read the response. Our middleware is suppose to format all of our responses as JSON.
+
+```go
+var pingRes pingRes
+body, _ := ioutil.ReadAll(resp.Body)
+err = json.Unmarshal(body, &pingRes)
+if err != nil {
+    closeServer()
+    t.Fatal(err)
+}
+```
+
+And we finally assert:
+
+- there are no errors
+- a proper headers are present 
+- correct status code is returned 
+
+```go
+if len(pingRes.Error) != 0 {
+    closeServer()
+    t.Fatal(pingRes.Error)
+}
+
+if len(pingRes.Message) == 0 {
+    closeServer()
+    t.Fatal("returned response is not suppose to be empty")
+}
+
+if resp.StatusCode != http.StatusOK {
+    closeServer()
+    t.Fatalf("returned response code '%v' is not as expected one '%v'", resp.StatusCode, http.StatusOK)
+}
+
+if resp.Header.Get("Content-Type") != "application/json" {
+    closeServer()
+    t.Fatalf("returned response header '%v' is not '%v'", resp.Header.Get("Content-Type"), "application/json")
+}
+
+closeServer()
+```
+
+**Notice the elegant usage of Go's context to close the server.**
+
+```go
+// In the test
+ctx, closeServer := context.WithCancel(context.Background())
+
+// In the codebase itself when launching the server
+go func() {
+    <-ctx.Done()
+    fmt.Println("Shutting down the HTTP server...")
+    server.Shutdown(ctx)
+}()
+
+err := server.ListenAndServeTLS(
+    cfg.certificatePemFilePath,
+    cfg.certificatePemPrivKeyFilePath,
+)
+```
 
 ## Extra things to notice
 
 - no need for creating a Server `Struct`. **Functions first, approach!**
 - dependencies are clearly encapsulated and passed around without affecting the server functionality, functions signature. Even if more routes would be added and custom dependencies for each route would be needed, only one place changes, The isolated deps Struct.
+
+## Getting your hands dirty, run the code
+
+Fetching source code, compiling, executing the binary:
+
+```
+go get -u github.com/gophersland/citizen
+go install ./cmd/...
+httpserver
+```
+
+Fetching source code, compiling, running the integration test:
+
+```
+go get -u github.com/gophersland/citizen
+go test github.com/gophersland/citizen/httpserver
+ok      github.com/gophersland/citizen/httpserver       2.011s
+```
+
+## You are done!
+
+I hope this tutorial helped you to understand how a HTTP server can be implemented in Go and how the routing and req/res works.
+ 
+- If you would like to join our Gophers community and become a [Citizen at GophersLand, join](http://gophersland.com/p/citizen).
+- [Click to read the full source code](https://github.com/gophersland/citizen/tree/master/httpserver).
+- If you have any idea what so ever how to improve this tutorial/codebase, [submit a PR please!](https://github.com/gophersland/citizen/issues).
+
+**Collaboration is the key. :muscle:**

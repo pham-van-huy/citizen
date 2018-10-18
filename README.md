@@ -33,10 +33,10 @@ Fundamentals | Installing Go on Linux | - | &#10003;
 Fundamentals | Writing first program | - | &#10003;
 Fundamentals | Is Go an Object Oriented language? | - | &#10003;
 Implementing HTTPS server secured by Let's Encrypt | Implementing HTTP server | https://github.com/gophersland/citizen/issues/1 | &#10003;
-Implementing HTTPS server secured by Let's Encrypt | Writing integration tests | https://github.com/gophersland/citizen/issues/2 |
-Implementing HTTPS server secured by Let's Encrypt | Securing the server with SSL | https://github.com/gophersland/citizen/issues/3 |
+Implementing HTTPS server secured by Let's Encrypt | Writing integration tests | https://github.com/gophersland/citizen/issues/2 | &#10003;
+Implementing HTTPS server secured by Let's Encrypt | Securing the server with SSL | https://github.com/gophersland/citizen/issues/3 | &#10003;
 Goroutines | Theory and practical example | Who would like to teach this? | 
-... | ... | ... | 
+**Wanna teach your favorite Go topic?** | **What's the content? Submit a PR!** | [Create a new task](https://github.com/gophersland/citizen/issues) | 
 
 ## Welcome
 

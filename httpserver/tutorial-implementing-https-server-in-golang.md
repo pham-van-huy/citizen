@@ -294,21 +294,21 @@ First we will launch the HTTP server in our test, and in a little hack-y way, we
 
 ```go
 ctx, closeServer := context.WithCancel(context.Background())
-	cfg := NewConfig(
-		9093,
-		fmt.Sprintf("%s/src/github.com/gophersland/citizen/httpserver/localhost.crt", os.Getenv("GOPATH")),
-		fmt.Sprintf("%s/src/github.com/gophersland/citizen/httpserver/localhost.key", os.Getenv("GOPATH")),
-	)
+cfg := NewConfig(
+    9093,
+    fmt.Sprintf("%s/src/github.com/gophersland/citizen/httpserver/localhost.crt", os.Getenv("GOPATH")),
+    fmt.Sprintf("%s/src/github.com/gophersland/citizen/httpserver/localhost.key", os.Getenv("GOPATH")),
+)
 
-	go func() {
-		reqHandlersDependencies := NewReqHandlersDependencies("test pong")
-		err := RunServerImpl(ctx, cfg, ServeReqsImpl, reqHandlersDependencies)
-		if err != nil {
-			t.Fatal(err)
-		}
-	}()
+go func() {
+    reqHandlersDependencies := NewReqHandlersDependencies("test pong")
+    err := RunServerImpl(ctx, cfg, ServeReqsImpl, reqHandlersDependencies)
+    if err != nil {
+        t.Fatal(err)
+    }
+}()
 
-	time.Sleep(time.Second*2)
+time.Sleep(time.Second*2)
 ```
 
 Now we will create an HTTP request to our previously registered `/ping` route and once again, only using  the Go standard library, execute the request. Gosh, Go is amazing.
@@ -331,17 +331,17 @@ func newHttpClient() *http.Client {
 }
 
 req, err := http.NewRequest("POST", createURL(cfg, pingRoute), createPingReq())
-	if err != nil {
-		closeServer()
-		t.Fatal(err)
-	}
+if err != nil {
+    closeServer()
+    t.Fatal(err)
+}
 
-	resp, err := newHttpClient().Do(req)
-	if err != nil {
-		closeServer()
-		t.Fatal(err)
-	}
-	defer resp.Body.Close()
+resp, err := newHttpClient().Do(req)
+if err != nil {
+    closeServer()
+    t.Fatal(err)
+}
+defer resp.Body.Close()
 ```
 
 We read the response. Our middleware is suppose to format all of our responses as JSON.
